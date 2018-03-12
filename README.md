@@ -10,7 +10,7 @@ Run `python migrate.py --help` for detailed usage instructions.
 
 **NOTE: Do not modify the output directory between application runs!**
 
-When the script is run with `--update-inplace` it will scan the output
+When the script is run with `--skip-existing` it will scan the output
 directory contents to avoid re-downloading existing patches.  Modifying the 
 output directory contents may break this behaviour.
 

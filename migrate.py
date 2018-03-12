@@ -83,7 +83,7 @@ def revision_directory_name(output_dir, revision_id):
     return os.path.join(output_dir, str(revision_id))
 
 
-def make_revision_directory(output_dir, revision_id):
+def ensure_revision_directory(output_dir, revision_id):
     dirname = revision_directory_name(output_dir, revision_id)
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
@@ -119,7 +119,13 @@ def write_revision_index(output_dir, revision_id, diff_count):
     print('wrote:', index_filename)
 
 
-def record_revision(revision_id, output_dir, rate_limit):
+def diff_already_downloaded(revision_id, diff_id, output_dir):
+    diff_filename = PATCHNAME_TEMPLATE.format(revision_id, diff_id)
+    diff_filepath = os.path.join(output_dir, str(revision_id), diff_filename)
+    return os.path.exists(diff_filepath)
+
+
+def record_revision(revision_id, output_dir, rate_limit, skip_existing):
     """Fetch a revision's patches and save them to the output directory."""
     sleep(rate_limit)
 
@@ -135,9 +141,16 @@ def record_revision(revision_id, output_dir, rate_limit):
             print("error: r{} {}".format(revision_id, err))
         return
 
-    make_revision_directory(output_dir, revision_id)
+    ensure_revision_directory(output_dir, revision_id)
+
+    updates_made = False
 
     for diff_id in range(1, diff_count + 1):
+        if skip_existing and diff_already_downloaded(revision_id, diff_id, output_dir):
+            continue
+        else:
+            updates_made = True
+
         sleep(rate_limit)
 
         try:
@@ -149,7 +162,10 @@ def record_revision(revision_id, output_dir, rate_limit):
 
         save_patch(diff_data, output_dir)
 
-    write_revision_index(output_dir, revision_id, diff_count)
+    if updates_made:
+        write_revision_index(output_dir, revision_id, diff_count)
+    else:
+        print("skipped: r{} (no new diffs)".format(revision_id))
 
 
 def parse_revision_range_str(rev_range_str):
@@ -180,6 +196,11 @@ def parse_args():
     parser.add_argument(
         'revision', help='The revision or revision range to save.  Can be a single revision of the form \'XXXX\' or a range of revisions of the form \'XXXX..YYYY\'')
     parser.add_argument(
+        '--skip-existing',
+        action='store_true',
+        help='Only download new diffs. (default: %(default)s)'
+    )
+    parser.add_argument(
         '--limit',
         type=float,
         default=1.0,
@@ -194,10 +215,6 @@ def parse_args():
 
 
 def main(opts):
-    # sample data:
-    # 169494: 4 patches
-    # TODO make it so the script can update the existing extract
-
     start_rev, end_rev = parse_revision_range_str(opts.revision)
 
     ensure_output_directory(opts.output_dir)
@@ -207,9 +224,7 @@ def main(opts):
     print()
 
     for rev_id in range(start_rev, end_rev + 1):
-        record_revision(rev_id, opts.output_dir, opts.limit)
-
-    # TODO output aws-cli command for sync
+        record_revision(rev_id, opts.output_dir, opts.limit, opts.skip_existing)
 
     print()
     print('Done.')
