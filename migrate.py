@@ -162,6 +162,11 @@ def parse_revision_range_str(rev_range_str):
     return start_rev, end_rev
 
 
+def ensure_output_directory(output_dir):
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Save MozReview patches to a directory')
@@ -173,6 +178,11 @@ def parse_args():
         default=1.0,
         help='Rate-limit API requests to one request every LIMIT seconds.  Accepts floating-point numbers like \'0.5\'. (default %(default)s seconds)'
     )
+    parser.add_argument(
+        '--output-dir',
+        default='site',
+        help='Output directory for HTML pages and patches'
+    )
     return parser.parse_args()
 
 
@@ -183,17 +193,14 @@ def main(opts):
 
     start_rev, end_rev = parse_revision_range_str(opts.revision)
 
-    output_dir = 'site'
+    ensure_output_directory(opts.output_dir)
 
-    if not os.path.isdir(output_dir):
-        print("Error: output directory '{}' does not exist".format(output_dir))
-        exit(1)
-    print("Outputting files to directory '{}'".format(output_dir))
+    print("Outputting files to directory '{}'".format(opts.output_dir))
     print("Rate-limiting to {} seconds between requests".format(opts.limit))
     print()
 
     for rev_id in range(start_rev, end_rev + 1):
-        record_revision(rev_id, output_dir, opts.limit)
+        record_revision(rev_id, opts.output_dir, opts.limit)
 
     # TODO output aws-cli command for sync
 
