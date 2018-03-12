@@ -183,12 +183,12 @@ def parse_args():
         '--limit',
         type=float,
         default=1.0,
-        help='Rate-limit API requests to one request every LIMIT seconds.  Accepts floating-point numbers like \'0.5\'. (default %(default)s seconds)'
+        help='Rate-limit API requests to one request every LIMIT seconds.  Accepts floating-point numbers like \'0.5\'. (default: %(default)s seconds)'
     )
     parser.add_argument(
         '--output-dir',
         default='site',
-        help='Output directory for HTML pages and patches'
+        help='Output directory for HTML pages and patches. (default: \'%(default)s\')'
     )
     return parser.parse_args()
 
