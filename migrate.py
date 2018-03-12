@@ -13,9 +13,9 @@ from time import sleep
 
 import requests
 
-PATCHNAME_TEMPLATE = "r{}-diff{}.patch"
-
 API_BASE_URL = 'https://reviewboard.mozilla.org/api'
+
+PATCHNAME_TEMPLATE = "r{}-diff{}.patch"
 
 REVISION_INDEX_TEMPLATE = """
 <doctype html>
@@ -50,9 +50,9 @@ def get_diff_count(review_id):
 
 
 def get_patch_for_diff(review_id, diff_id):
-    """Fetch the patch contents as a string of bytes."""
+    """Fetch a revision diff's contents as a string of bytes."""
     # Fetch the raw diff via the regular site.  The raw diff we want isn't
-    # accessible via the web API.
+    # accessible via the Review Board API.
     url = 'https://reviewboard.mozilla.org/r/{}/diff/{}/raw'.format(review_id,
                                                                     diff_id)
     response = requests.get(url)
@@ -89,7 +89,8 @@ def make_revision_directory(output_dir, revision_id):
         os.mkdir(dirname)
 
 
-def write_directory_index(output_dir, revision_id, diff_count):
+def write_revision_index(output_dir, revision_id, diff_count):
+    """Write an index.html for a directory of patches."""
     latest_diff_id = diff_count
 
     diff_links = []
@@ -119,6 +120,7 @@ def write_directory_index(output_dir, revision_id, diff_count):
 
 
 def record_revision(revision_id, output_dir, rate_limit):
+    """Fetch a revision's patches and save them to the output directory."""
     sleep(rate_limit)
 
     try:
@@ -147,10 +149,15 @@ def record_revision(revision_id, output_dir, rate_limit):
 
         save_patch(diff_data, output_dir)
 
-    write_directory_index(output_dir, revision_id, diff_count)
+    write_revision_index(output_dir, revision_id, diff_count)
 
 
 def parse_revision_range_str(rev_range_str):
+    """Parse a revision range string into range start and range end integers.
+
+    Range strings have two forms: 'X', which returns (X,X), or 'X..Y',
+    which returns (X,Y).
+    """
     rev_range_parts = rev_range_str.split('..')
     if len(rev_range_parts) == 2:
         start_rev = int(rev_range_parts[0])
