@@ -8,7 +8,7 @@ Run `python migrate.py --help` for detailed usage instructions.
 
 ## Output
 
-**NOTE: Do not modify the output directory!**
+**NOTE: Do not modify the output directory between application runs!**
 
 When the script is run with `--update-inplace` it will scan the output
 directory contents to avoid re-downloading existing patches.  Modifying the 
