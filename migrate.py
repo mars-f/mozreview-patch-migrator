@@ -18,13 +18,19 @@ API_BASE_URL = 'https://reviewboard.mozilla.org/api'
 PATCHNAME_TEMPLATE = "r{}-diff{}.patch"
 
 REVISION_INDEX_TEMPLATE = """
-<doctype html>
+<!DOCTYPE html>
 <html>
-<head><title>MozReview patch archive for revision {revision}</title></head>
-<h1>MozReview patch archive for revision {revision}</h1>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>MozReview patch archive for revision {revision}</title>
+<style>
+    body {{ font-family: sans-serif; }}
+    li {{ line-height: 2em; }}
+</style>
+</head>
 <body>
+<h1>MozReview patch archive for revision {revision}</h1>
 <ul>
-<li><a href='..'>..</a></li>
 {latest_link}
 {difflist_links}
 </ul>
